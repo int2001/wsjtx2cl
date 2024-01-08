@@ -4,7 +4,7 @@
   "description": "Simple Bridge for connecting WSJT-* fro Cloudlog",
   "keywords": [],
   "main": "./main.js",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "DJ7NT",
   "scripts": {
     "start": "electron-forge start",

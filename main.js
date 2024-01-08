@@ -100,8 +100,8 @@ function parseADIF(adifdata) {
 
 function send2cloudlog(adif) {
 	let clpayload={};
-	clpayload.key=defaultcfg.cloudlog_key;
-	clpayload.station_profile_id=defaultcfg.cloudlog_id;
+	clpayload.key=defaultcfg.cloudlog_key.trim();
+	clpayload.station_profile_id=defaultcfg.cloudlog_id.trim();
 	clpayload.type='adif';
 	clpayload.string=adif;
 	// console.log(clpayload);

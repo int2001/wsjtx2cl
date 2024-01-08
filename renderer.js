@@ -17,13 +17,13 @@ $(document).ready(function() {
 
 	cfg=ipcRenderer.sendSync("get_config", '');
 	$("#cloudlog_url").val(cfg.cloudlog_url);
-	$("#cloudlog_key").val(cfg.cloudlog_key);
-	$("#cloudlog_id").val(cfg.cloudlog_id);
+	$("#cloudlog_key").val(cfg.cloudlog_key.trim());
+	$("#cloudlog_id").val(cfg.cloudlog_id.trim());
 
 	bt_save.addEventListener('click', () => {
-		cfg.cloudlog_url=$("#cloudlog_url").val();
-		cfg.cloudlog_key=$("#cloudlog_key").val();
-		cfg.cloudlog_id=$("#cloudlog_id").val();
+		cfg.cloudlog_url=$("#cloudlog_url").val().trim();
+		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
+		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
 		x=ipcRenderer.sendSync("set_config", cfg);
 		console.log(x);
 	});
