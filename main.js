@@ -47,7 +47,7 @@ function createWindow () {
 
 
 	mainWindow.loadFile('index.html')
-
+	mainWindow.setTitle(require('./package.json').name + " V" + require('./package.json').version);
 
 	// Open the DevTools.
 	// mainWindow.webContents.openDevTools()
