@@ -5,7 +5,7 @@
   "keywords": [],
   "main": "./main.js",
   "version": "1.0.0",
-  "author": "jorgdorgeist",
+  "author": "DJ7NT",
   "scripts": {
     "start": "electron-forge start",
     "rebuild-xml": "electron-rebuild -f -w xml2js",

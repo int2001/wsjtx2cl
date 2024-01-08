@@ -6,7 +6,7 @@ module.exports = {
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
-      config: {},
+      config: { name: "SW2CL_DJ7NT" },
     },
     {
       name: '@electron-forge/maker-zip',
