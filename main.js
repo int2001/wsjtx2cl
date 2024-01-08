@@ -1,5 +1,5 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron/main');
+const {app, BrowserWindow, globalShortcut } = require('electron/main');
 const path = require('node:path');
 const {ipcMain} = require('electron')
 let mainWindow;
@@ -34,13 +34,16 @@ function createWindow () {
 		width: 800,
 		height: 500,
 		resizable: false,
+		autoHideMenuBar: true,
 		webPreferences: {
 			contextIsolation: false,
 			nodeIntegration: true,
+			devTools: !app.isPackaged,
 			enableRemoteModule: true,
 			preload: path.join(__dirname, 'preload.js')
 		}
-	})
+	});
+	mainWindow.setMenu(null)
 
 
 	mainWindow.loadFile('index.html')
@@ -70,7 +73,7 @@ ipcMain.on("get_config", async (event,arg) => {
 
 app.whenReady().then(() => {
 	mainWindow=createWindow()
-
+	globalShortcut.register('Control+Shift+I', () => { return false; });
 	app.on('activate', function () {
 		// On macOS it's common to re-create a window in the app when the
 		// dock icon is clicked and there are no other windows open.

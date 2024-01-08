@@ -1,7 +1,7 @@
 {
-  "name": "mean-bread-come-qr73y",
-  "productName": "mean-bread-come-qr73y",
-  "description": "My Electron application description",
+  "name": "Simple WSJTX 2 CL by DJ7NT",
+  "productName": "Simple WSJTX 2 CL by DJ7NT",
+  "description": "Simple Bridge for connecting WSJT-* fro Cloudlog",
   "keywords": [],
   "main": "./main.js",
   "version": "1.0.0",
