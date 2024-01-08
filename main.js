@@ -9,7 +9,7 @@ var WServer = udp.createSocket('udp4');
 
 var q={};
 var defaultcfg = {
-	cloudlog_url: "https://log.jo30.de/index.php/api/radio",
+	cloudlog_url: "https://log.jo30.de/index.php",
 	cloudlog_key: "mykey",
 	cloudlog_id: -1
 }
@@ -32,7 +32,7 @@ function createWindow () {
 	// Create the browser window.
 	const mainWindow = new BrowserWindow({
 		width: 800,
-		height: 500,
+		height: 550,
 		resizable: false,
 		autoHideMenuBar: true,
 		webPreferences: {
