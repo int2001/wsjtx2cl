@@ -11,7 +11,7 @@ var q={};
 var defaultcfg = {
 	cloudlog_url: "https://log.jo30.de/index.php",
 	cloudlog_key: "mykey",
-	cloudlog_id: -1
+	cloudlog_id: 0
 }
 
 const storage = require('electron-json-storage');
@@ -111,6 +111,7 @@ function send2cloudlog(adif) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
+			'User-Agent': 'SW2CL_v' + app.getVersion(),
 			'Content-Length': postData.length
 		}
 	};
@@ -152,18 +153,23 @@ function send2cloudlog(adif) {
 
 WServer.on('message',async function(msg,info){
 	adobject=parseADIF(msg.toString());
-	let x={};
-	try {
-		x = JSON.parse(await send2cloudlog(msg.toString()));
-	} catch(e) {
-		x.status='bug';
-	}
-	if (x.status == 'created') {
-		adobject.created=true;
-		mainWindow.webContents.send('updateTX', adobject);
+	if (adobject.qsos.length>0) {
+		let x={};
+		try {
+			x = JSON.parse(await send2cloudlog(msg.toString()));
+		} catch(e) {
+			x.status='bug';
+		}
+		if (x.status == 'created') {
+			adobject.created=true;
+			mainWindow.webContents.send('updateTX', adobject);
+		} else {
+			adobject.created=false;
+			mainWindow.webContents.send('updateTX', adobject);
+		}
+		mainWindow.webContents.send('updateMsg','');
 	} else {
-		adobject.created=false;
-		mainWindow.webContents.send('updateTX', adobject);
+		mainWindow.webContents.send('updateMsg','<div class="alert alert-danger" role="alert">Set ONLY Secondary UDP-Server to Port 2333 at WSTJ-X</div>');
 	}
 });
 

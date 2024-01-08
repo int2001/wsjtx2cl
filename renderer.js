@@ -34,6 +34,10 @@ function select(selector) {
 	return document.querySelector(selector);
 }
 
+window.TX_API.onUpdateMsg((value) => {
+	$("#msg").html(value);
+});
+
 window.TX_API.onUpdateTX((value) => {
 	if (value.created) {
 		$("#log").html('<div class="alert alert-success" role="alert">'+value.qsos[0].TIME_ON+" "+value.qsos[0].CALL+" ("+value.qsos[0].GRIDSQUARE+") on "+value.qsos[0].BAND+" (R:"+value.qsos[0].RST_RCVD+" / S:"+value.qsos[0].RST_SENT+') - OK</div>');
