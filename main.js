@@ -3,6 +3,7 @@ const {app, BrowserWindow, globalShortcut } = require('electron/main');
 const path = require('node:path');
 const {ipcMain} = require('electron')
 let mainWindow;
+let msgbacklog=[];
 
 if (require('electron-squirrel-startup')) app.quit();
 
@@ -73,15 +74,17 @@ ipcMain.on("get_config", async (event,arg) => {
 
 
 app.whenReady().then(() => {
-	mainWindow=createWindow()
+	mainWindow=createWindow();
 	globalShortcut.register('Control+Shift+I', () => { return false; });
 	app.on('activate', function () {
 		// On macOS it's common to re-create a window in the app when the
 		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0) createWindow()
-	})
+	});
 	mainWindow.webContents.once('dom-ready', function() {
-		running();
+		if (msgbacklog.length>0) {
+			mainWindow.webContents.send('updateMsg',msgbacklog.pop());
+		}
 	});
 })
 
@@ -96,6 +99,7 @@ app.on('window-all-closed', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
+running();
 
 function running() {
 	function parseADIF(adifdata) {
@@ -166,7 +170,11 @@ function running() {
 
 	var WServer = udp.createSocket('udp4');
 	WServer.on('error', function(err) {
-		mainWindow.webContents.send('updateMsg','Some other Tool which Block Port 2333 is running!');
+		try {
+			mainWindow.webContents.send('updateMsg','Some other Tool which Block Port 2333 is running!');
+		} catch(e) {
+			msgbacklog.push('Some other Tool which Block Port 2333 is running!');
+		}
 	});
 
 	WServer.on('message',async function(msg,info){
