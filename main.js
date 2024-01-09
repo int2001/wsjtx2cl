@@ -166,7 +166,7 @@ WServer.on('message',async function(msg,info){
 		let x={};
 		try {
 			plainret=await send2cloudlog(msg.toString());
-			x = JSON.parse(plainret);
+			x = JSON.parse(plainret); 
 		} catch(e) {
 			try {
 				x.payload=JSON.parse(e);
