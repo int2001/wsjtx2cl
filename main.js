@@ -5,7 +5,6 @@ const {ipcMain} = require('electron')
 let mainWindow;
 
 var udp = require('dgram');
-var WServer = udp.createSocket('udp4');
 
 var q={};
 var defaultcfg = {
@@ -79,6 +78,9 @@ app.whenReady().then(() => {
 		// dock icon is clicked and there are no other windows open.
 		if (BrowserWindow.getAllWindows().length === 0) createWindow()
 	})
+	mainWindow.webContents.once('dom-ready', function() {
+		running();
+	});
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common
@@ -92,86 +94,107 @@ app.on('window-all-closed', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 
-function parseADIF(adifdata) {
-	const { ADIF } = require("tcadif");
-	var adiReader = ADIF.parse(adifdata);
-	return adiReader.toObject();
-}
 
-function send2cloudlog(adif) {
-	let clpayload={};
-	clpayload.key=defaultcfg.cloudlog_key.trim();
-	clpayload.station_profile_id=defaultcfg.cloudlog_id.trim();
-	clpayload.type='adif';
-	clpayload.string=adif;
-	// console.log(clpayload);
-	postData=JSON.stringify(clpayload);
-	const https = require('https');
-	var options = {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-			'User-Agent': 'SW2CL_v' + app.getVersion(),
-			'Content-Length': postData.length
-		}
-	};
+function running() {
+	function parseADIF(adifdata) {
+		const { ADIF } = require("tcadif");
+		var adiReader = ADIF.parse(adifdata);
+		return adiReader.toObject();
+	}
 
-
-	return new Promise((resolve, reject) => {
-		const req = https.request(defaultcfg.cloudlog_url + '/api/qso',options, (res) => {
-
-			if (res.statusCode < 200 || res.statusCode > 299) {
-				reject(new Error(`HTTP status code ${res.statusCode}`));
+	function send2cloudlog(adif) {
+		let clpayload={};
+		clpayload.key=defaultcfg.cloudlog_key.trim();
+		clpayload.station_profile_id=defaultcfg.cloudlog_id.trim();
+		clpayload.type='adif';
+		clpayload.string=adif;
+		// console.log(clpayload);
+		postData=JSON.stringify(clpayload);
+		const https = require('https');
+		var options = {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'User-Agent': 'SW2CL_v' + app.getVersion(),
+				'Content-Length': postData.length
 			}
+		};
 
-			const body = [];
-			res.on('data', (chunk) => body.push(chunk));
-			res.on('end', () => {
-				const resString = Buffer.concat(body).toString();
-				resolve(resString);
+
+		return new Promise((resolve, reject) => {
+			rej=false;
+			const req = https.request(defaultcfg.cloudlog_url + '/api/qso',options, (res) => {
+
+				if (res.statusCode < 200 || res.statusCode > 299) {
+					rej=true;
+				}
+
+				const body = [];
+				res.on('data', (chunk) => body.push(chunk));
+				res.on('end', () => {
+					const resString = Buffer.concat(body).toString();
+					if (rej) {
+						reject(resString);
+					} else {
+						resolve(resString);
+					}
+				})
 			})
-		})
 
-		req.on('error', (err) => {
-			reject(err)
-		})
+			req.on('error', (err) => {
+				rej=true;
+			})
 
-		req.on('timeout', () => {
-			req.destroy();
-			reject(new Error('Request time out'));
-		})
+			req.on('timeout', () => {
+				rej=true;
+				req.destroy();
+				reject(new Error('Request time out'));
+			})
 
-		req.on('error', (e) => {
-			console.error(e);
+			req.on('error', (e) => {
+				rej=true;
+				console.error(e);
+			});
+
+			req.write(postData);
+			req.end();
 		});
 
-		req.write(postData);
-		req.end();
+	}
+
+	var WServer = udp.createSocket('udp4');
+	WServer.on('error', function(err) {
+		mainWindow.webContents.send('updateMsg','Some other Tool which Block Port 2333 is running!');
 	});
 
-}
-
-WServer.on('message',async function(msg,info){
-	adobject=parseADIF(msg.toString());
-	if (adobject.qsos.length>0) {
-		let x={};
-		try {
-			x = JSON.parse(await send2cloudlog(msg.toString()));
-		} catch(e) {
-			x.status='bug';
-		}
-		if (x.status == 'created') {
-			adobject.created=true;
+	WServer.on('message',async function(msg,info){
+		adobject=parseADIF(msg.toString());
+		var plainret='';
+		if (adobject.qsos.length>0) {
+			let x={};
+			try {
+				plainret=await send2cloudlog(msg.toString());
+				x = JSON.parse(plainret);
+			} catch(e) {
+				x.payload=JSON.parse(e);
+				x.status='bug';
+			}
+			if (x.status == 'created') {
+				adobject.created=true;
+			} else {
+				adobject.created=false;
+				adobject.fail=x;
+			}
 			mainWindow.webContents.send('updateTX', adobject);
+			mainWindow.webContents.send('updateMsg','');
 		} else {
-			adobject.created=false;
-			mainWindow.webContents.send('updateTX', adobject);
+			mainWindow.webContents.send('updateMsg','<div class="alert alert-danger" role="alert">Set ONLY Secondary UDP-Server to Port 2333 at WSTJ-X</div>');
 		}
-		mainWindow.webContents.send('updateMsg','');
-	} else {
-		mainWindow.webContents.send('updateMsg','<div class="alert alert-danger" role="alert">Set ONLY Secondary UDP-Server to Port 2333 at WSTJ-X</div>');
+	});
+
+	try {
+		WServer.bind(2333);
+	} catch(e) {
+		mainWindow.webContents.send('updateMsg','Some other Tool blocks Port 2333!');
 	}
-});
-
-WServer.bind(2333);
-
+}
