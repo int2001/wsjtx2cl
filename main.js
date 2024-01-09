@@ -4,6 +4,8 @@ const path = require('node:path');
 const {ipcMain} = require('electron')
 let mainWindow;
 
+if (require('electron-squirrel-startup')) app.quit();
+
 var udp = require('dgram');
 
 var q={};
