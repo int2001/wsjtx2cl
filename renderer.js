@@ -12,6 +12,7 @@ var cfg={};
 const {ipcRenderer} = require('electron')
 
 const bt_save=select("#save");
+const bt_restart=select("#restart");
 
 $(document).ready(function() {
 
@@ -26,6 +27,10 @@ $(document).ready(function() {
 		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
 		x=ipcRenderer.sendSync("set_config", cfg);
 		console.log(x);
+	});
+
+	bt_restart.addEventListener('click', () => {
+		x=ipcRenderer.sendSync("restart", '');
 	});
 
 });
