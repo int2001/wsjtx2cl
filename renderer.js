@@ -12,7 +12,7 @@ var cfg={};
 const {ipcRenderer} = require('electron')
 
 const bt_save=select("#save");
-const bt_restart=select("#restart");
+const bt_quit=select("#quit");
 
 $(document).ready(function() {
 
@@ -29,8 +29,8 @@ $(document).ready(function() {
 		console.log(x);
 	});
 
-	bt_restart.addEventListener('click', () => {
-		x=ipcRenderer.sendSync("restart", '');
+	bt_quit.addEventListener('click', () => {
+		x=ipcRenderer.sendSync("quit", '');
 	});
 
 });

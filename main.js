@@ -67,8 +67,8 @@ ipcMain.on("get_config", async (event,arg) => {
 	event.returnValue=defaultcfg;
 });
 
-ipcMain.on("restart", async (event,arg) => {
-	startserver();
+ipcMain.on("quit", async (event,arg) => {
+	app.quit();
 	event.returnValue=true;
 });
 
