@@ -138,18 +138,15 @@ function send2cloudlog(adif) {
 
 		req.on('error', (err) => {
 			rej=true;
+			req.destroy();
+			reject('{"status":"failed","reason":"Internetproblem"}');
 		})
 
-		req.on('timeout', () => {
+		req.on('timeout', (err) => {
 			rej=true;
 			req.destroy();
-			reject(new Error('Request time out'));
+			reject('{"status":"failed","reason":"timeout"}');
 		})
-
-		req.on('error', (e) => {
-			rej=true;
-			console.error(e);
-		});
 
 		req.write(postData);
 		req.end();
@@ -171,8 +168,13 @@ WServer.on('message',async function(msg,info){
 			plainret=await send2cloudlog(msg.toString());
 			x = JSON.parse(plainret);
 		} catch(e) {
-			x.payload=JSON.parse(e);
-			x.status='bug';
+			try {
+				x.payload=JSON.parse(e);
+			} catch (ee) {
+				x.payload=ee;
+			} finally {
+				x.status='bug';
+			}
 		}
 		if (x.status == 'created') {
 			adobject.created=true;
