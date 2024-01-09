@@ -204,6 +204,7 @@ function running() {
 
 	try {
 		WServer.bind(2333);
+		msgbacklog.push('Waiting for QSO / Listening on UDP 2333');
 	} catch(e) {
 		mainWindow.webContents.send('updateMsg','Some other Tool blocks Port 2333!');
 	}
