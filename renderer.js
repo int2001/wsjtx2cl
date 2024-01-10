@@ -13,6 +13,7 @@ const {ipcRenderer} = require('electron')
 
 const bt_save=select("#save");
 const bt_quit=select("#quit");
+const bt_test=select("#test");
 
 $(document).ready(function() {
 
@@ -31,6 +32,25 @@ $(document).ready(function() {
 
 	bt_quit.addEventListener('click', () => {
 		x=ipcRenderer.sendSync("quit", '');
+	});
+
+	bt_test.addEventListener('click', () => {
+		cfg.cloudlog_url=$("#cloudlog_url").val().trim();
+		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
+		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
+		x=(ipcRenderer.sendSync("test", cfg));
+		if (x.payload.status == 'created') {
+			$("#test").removeClass('btn-primary');
+			$("#test").removeClass('alert-danger');
+			$("#test").addClass('alert-success');
+			$("#msg").html("Ready");
+		} else {
+			$("#test").removeClass('btn-primary');
+			$("#test").removeClass('alert-success');
+			$("#test").addClass('alert-danger');
+			$("#msg").html("Test failed. Reason: "+x.payload.reason);
+		}
+		console.log(x);
 	});
 
 });

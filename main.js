@@ -5,6 +5,8 @@ let mainWindow;
 let msgbacklog=[];
 var WServer;
 
+const DemoAdif='<call:5>DJ7NT <gridsquare:4>JO30 <mode:3>FT8 <rst_sent:3>-15 <rst_rcvd:2>33 <qso_date:8>20240110 <time_on:6>051855 <qso_date_off:8>20240110 <time_off:6>051855 <band:3>40m <freq:8>7.155783 <station_callsign:5>TE1ST <my_gridsquare:6>JO30OO <eor>';
+
 if (require('electron-squirrel-startup')) app.quit();
 
 var udp = require('dgram');
@@ -72,6 +74,25 @@ ipcMain.on("quit", async (event,arg) => {
 	event.returnValue=true;
 });
 
+ipcMain.on("test", async (event,arg) => {
+	let result={};
+	let plain;
+	try {
+		plain=await send2cloudlog(arg,DemoAdif, true);
+	} catch (e) {
+		plain=e;
+	} finally {
+		try {
+			result.payload=JSON.parse(plain.resString);
+		} catch (ee) {
+			result.payload=plain.resString;
+		} finally {
+			result.statusCode=plain.statusCode;
+			event.returnValue=result;
+		}
+	}
+});
+
 
 app.whenReady().then(() => {
 	mainWindow=createWindow();
@@ -97,10 +118,10 @@ function parseADIF(adifdata) {
 	return adiReader.toObject();
 }
 
-function send2cloudlog(adif) {
+function send2cloudlog(o_cfg,adif, dryrun = false) {
 	let clpayload={};
-	clpayload.key=defaultcfg.cloudlog_key.trim();
-	clpayload.station_profile_id=defaultcfg.cloudlog_id.trim();
+	clpayload.key=o_cfg.cloudlog_key.trim();
+	clpayload.station_profile_id=o_cfg.cloudlog_id.trim();
 	clpayload.type='adif';
 	clpayload.string=adif;
 	// console.log(clpayload);
@@ -115,11 +136,14 @@ function send2cloudlog(adif) {
 		}
 	};
 
-
 	return new Promise((resolve, reject) => {
 		rej=false;
-		const req = https.request(defaultcfg.cloudlog_url + '/api/qso',options, (res) => {
+		let result={};
+		let url=o_cfg.cloudlog_url + '/api/qso';
+		if (dryrun) { url+='/true'; }
+		const req = https.request(url,options, (res) => {
 
+			result.statusCode=res.statusCode;
 			if (res.statusCode < 200 || res.statusCode > 299) {
 				rej=true;
 			}
@@ -127,11 +151,16 @@ function send2cloudlog(adif) {
 			const body = [];
 			res.on('data', (chunk) => body.push(chunk));
 			res.on('end', () => {
-				const resString = Buffer.concat(body).toString();
+				var resString = Buffer.concat(body).toString();
 				if (rej) {
-					reject(resString);
+					if (resString.indexOf('html>')>0) {
+						resString='{"status":"failed","reason":"Falsche URL"}';
+					}
+					result.resString=resString;
+					reject(result);
 				} else {
-					resolve(resString);
+					result.resString=resString;
+					resolve(result);
 				}
 			})
 		})
@@ -139,13 +168,15 @@ function send2cloudlog(adif) {
 		req.on('error', (err) => {
 			rej=true;
 			req.destroy();
-			reject('{"status":"failed","reason":"Internetproblem"}');
+			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			reject(result);
 		})
 
 		req.on('timeout', (err) => {
 			rej=true;
 			req.destroy();
-			reject('{"status":"failed","reason":"timeout"}');
+			result.resString='{"status":"failed","reason":"timeout"}';
+			reject(result);
 		})
 
 		req.write(postData);
@@ -165,18 +196,22 @@ WServer.on('message',async function(msg,info){
 	if (adobject.qsos.length>0) {
 		let x={};
 		try {
-			plainret=await send2cloudlog(msg.toString());
-			x = JSON.parse(plainret); 
+			plainret=await send2cloudlog(defaultcfg,msg.toString());
+			x.state=plainret.statusCode;
+			x.payload = JSON.parse(plainret.resString); 
 		} catch(e) {
 			try {
-				x.payload=JSON.parse(e);
+				x.payload=JSON.parse(e.resString);
 			} catch (ee) {
-				x.payload=ee;
+				x.state=e.statusCode;
+				x.payload={};
+				x.payload.string=e.resString;
+				x.payload.status='bug';
 			} finally {
-				x.status='bug';
+				x.payload.status='bug';
 			}
 		}
-		if (x.status == 'created') {
+		if (x.payload.status == 'created') {
 			adobject.created=true;
 		} else {
 			adobject.created=false;
