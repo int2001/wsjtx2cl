@@ -43,12 +43,12 @@ $(document).ready(function() {
 			$("#test").removeClass('btn-primary');
 			$("#test").removeClass('alert-danger');
 			$("#test").addClass('alert-success');
-			$("#msg").html("Ready");
+			$("#msg2").html("");
 		} else {
 			$("#test").removeClass('btn-primary');
 			$("#test").removeClass('alert-success');
 			$("#test").addClass('alert-danger');
-			$("#msg").html("Test failed. Reason: "+x.payload.reason);
+			$("#msg2").html("Test failed. Reason: "+x.payload.reason);
 		}
 		console.log(x);
 	});
@@ -61,6 +61,7 @@ function select(selector) {
 
 window.TX_API.onUpdateMsg((value) => {
 	$("#msg").html(value);
+	$("#msg2").html("");
 });
 
 window.TX_API.onUpdateTX((value) => {
