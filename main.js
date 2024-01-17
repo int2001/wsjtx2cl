@@ -74,6 +74,25 @@ ipcMain.on("quit", async (event,arg) => {
 	event.returnValue=true;
 });
 
+ipcMain.on("get_stations", async (event,arg) => {
+	let stations={};
+	let plain;
+	try {
+		plain=await get_stations(arg);
+	} catch(e) {
+		plain=e;
+	} finally {
+		try {
+			stations.payload=JSON.parse(plain.resString);
+		} catch (ee) {
+			stations.payload=plain.resString;
+		} finally {
+			stations.statusCode=plain.statusCode;
+			event.returnValue=stations;
+		}
+	}
+});
+
 ipcMain.on("test", async (event,arg) => {
 	let result={};
 	let plain;
@@ -180,6 +199,62 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 		})
 
 		req.write(postData);
+		req.end();
+	});
+
+}
+
+function get_stations(o_cfg) {
+	const https = require('https');
+	var options = {
+		method: 'GET',
+		headers: {
+			'User-Agent': 'SW2CL_v' + app.getVersion(),
+		}
+	};
+
+	return new Promise((resolve, reject) => {
+		rej=false;
+		let result={};
+		let url=o_cfg.cloudlog_url + '/api/station_info/' + o_cfg.cloudlog_key.trim();
+		const req = https.request(url,options, (res) => {
+
+			result.statusCode=res.statusCode;
+			if (res.statusCode < 200 || res.statusCode > 299) {
+				rej=true;
+			}
+
+			const body = [];
+			res.on('data', (chunk) => body.push(chunk));
+			res.on('end', () => {
+				var resString = Buffer.concat(body).toString();
+				if (rej) {
+					if (resString.indexOf('html>')>0) {
+						resString='{"status":"failed","reason":"Falsche URL"}';
+					}
+					result.resString=resString;
+					reject(result);
+				} else {
+					result.resString=resString;
+					resolve(result);
+				}
+			})
+		})
+
+		req.on('error', (err) => {
+			rej=true;
+			req.destroy();
+			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			reject(result);
+		})
+
+		req.on('timeout', (err) => {
+			rej=true;
+			req.destroy();
+			result.resString='{"status":"failed","reason":"timeout"}';
+			reject(result);
+		})
+
 		req.end();
 	});
 

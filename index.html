@@ -16,46 +16,40 @@
 		<!-- You can also require other files to run in this process -->
 		<div class="container">
 				<div class="row">
-				<div class="col-md">
-					<div class="mb-3 col-mb-3">
+					<div class="col">
 						<label for="cloudlog_url">Cloudlog-URL</label>
 						<input type="url" class="form-control form-control-sm" name="cloudlog_url" id="cloudlog_url" placeholder="https://log.jo30.de/index.php" value="">
 					</div>
 				</div>
-				</div>
 				<div class="row">
-				<div class="col-md">
-					<div class="mb-3 col-mb-3">
+					<div class="col">
 						<label for="cloudlog_key">Cloudlog-API-Key</label>
 						<input type="text" class="form-control form-control-sm" name="cloudlog_key" id="cloudlog_key" value="">
 					</div>
 				</div>
-				</div>
 				<div class="row">
-				<div class="col-md">
-					<div class="mb-3 col-mb-3">
-						<label for="cloudlog_key">Cloudlog-Station-ID</label>
-						<input type="number" class="form-control form-control-sm" name="cloudlog_id" id="cloudlog_id" value="">
+					<div class="col">
+					<label class="form-label" for="cloudlog_id">Cloudlog-Station-ID</label>
+						<div class="input-group">
+							<select class="form-select" aria-label="Station ID" name="cloudlog_id" id="cloudlog_id">
+								<option value="0">Default Station Location</option>
+							</select>
+							&nbsp;
+							<button type="button" class="btn btn-primary" id="get_stations"><i class="fas fa-sync"></i>Get Stations</button>
+						</div>
 					</div>
 				</div>
-				</div>
 				<div class="row">
-				<div class="col-md">
-					<div class="mb-3 col-mb-3 style="text-align: left">
+					<div class="col" style="text-align: left">
 						<button type="button" class="btn btn-primary" id="save"><i class="fas fa-save"></i>Save</button>
 					</div>
-				</div>
-				<div class="col-md">
-					<div class="mb-3 col-mb-3" style="text-align: center">
+					<div class="col" style="text-align: center">
 						<button type="button" class="btn btn-primary" id="test"><i class="fas fa-sync"></i>Test</button>
 						<div class="label" style="text-align: center" id="msg2"></div>
 					</div>
-				</div>
-				<div class="col-md">
-					<div class="mb-3 col-mb-3" style="text-align: right">
+					<div class="col" style="text-align: right">
 						<button type="button" class="btn btn-primary" id="quit"><i class="fas fa-sync"></i>Quit</button>
 					</div>
-				</div>
 				</div>
 		</div>
 		<div class="container">

@@ -14,19 +14,28 @@ const {ipcRenderer} = require('electron')
 const bt_save=select("#save");
 const bt_quit=select("#quit");
 const bt_test=select("#test");
+const bt_get_stations=select("#get_stations");
 
 $(document).ready(function() {
 
 	cfg=ipcRenderer.sendSync("get_config", '');
 	$("#cloudlog_url").val(cfg.cloudlog_url);
 	$("#cloudlog_key").val(cfg.cloudlog_key.trim());
-	$("#cloudlog_id").val(cfg.cloudlog_id.trim());
+	$("#cloudlog_id select").val(cfg.cloudlog_id);
 
 	bt_save.addEventListener('click', () => {
 		cfg.cloudlog_url=$("#cloudlog_url").val().trim();
 		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
-		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
+		cfg.cloudlog_id=$("#cloudlog_id").val();
 		x=ipcRenderer.sendSync("set_config", cfg);
+		console.log(x);
+	});
+
+	bt_get_stations.addEventListener('click', () => {
+		cfg.cloudlog_url=$("#cloudlog_url").val().trim();
+		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
+		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
+		x=(ipcRenderer.sendSync("get_stations", cfg));
 		console.log(x);
 	});
 
