@@ -15,7 +15,10 @@ var q={};
 var defaultcfg = {
 	cloudlog_url: "https://log.jo30.de/index.php",
 	cloudlog_key: "mykey",
-	cloudlog_id: 0
+	cloudlog_id: 0,
+	flrig_host: '127.0.0.1',
+	flrig_port: '12345',
+	flrig_ena: false,
 }
 
 const storage = require('electron-json-storage');
@@ -28,7 +31,7 @@ storage.has('basic', function(error, hasKey) {
 			if (e) throw e;
 		});
 	} else {
-		defaultcfg=storage.getSync('basic');
+		Object.assign(defaultcfg,storage.getSync('basic'));
 	}
 });
 
@@ -65,7 +68,8 @@ ipcMain.on("set_config", async (event,arg) => {
 });
 
 ipcMain.on("get_config", async (event,arg) => {
-	defaultcfg=storage.getSync('basic')
+	Object.assign(defaultcfg,storage.getSync('basic'));
+	// defaultcfg=storage.getSync('basic')
 	event.returnValue=defaultcfg;
 });
 
