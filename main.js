@@ -39,7 +39,7 @@ function createWindow () {
 	const mainWindow = new BrowserWindow({
 		width: 800,
 		height: 550,
-		resizable: false,
+		resizable: true,
 		autoHideMenuBar: true,
 		webPreferences: {
 			contextIsolation: false,

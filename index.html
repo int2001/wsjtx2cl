@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="viewport" content="width=device-width, initial-scale=.5">
 		<!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
 		<!-- Bootstrap CSS -->
 		<!-- Bootstrap CSS -->
@@ -18,7 +18,7 @@
 				<div class="row">
 				<div class="col-md">
 					<div class="mb-3 col-mb-3">
-						<label for="cloudlog_url">Cloudlog-URL</label>
+						<label for="cloudlog_url">Wavelog-URL</label>
 						<input type="url" class="form-control form-control-sm" name="cloudlog_url" id="cloudlog_url" placeholder="https://log.jo30.de/index.php" value="">
 					</div>
 				</div>
@@ -26,7 +26,7 @@
 				<div class="row">
 				<div class="col-md">
 					<div class="mb-3 col-mb-3">
-						<label for="cloudlog_key">Cloudlog-API-Key</label>
+						<label for="cloudlog_key">Wavelog-API-Key</label>
 						<input type="text" class="form-control form-control-sm" name="cloudlog_key" id="cloudlog_key" value="">
 					</div>
 				</div>
@@ -34,7 +34,7 @@
 				<div class="row">
 				<div class="col-md">
 					<div class="mb-3 col-mb-3">
-						<label for="cloudlog_key">Cloudlog-Station-ID</label>
+						<label for="cloudlog_key">Wavelog-Station-ID</label>
 						<input type="number" class="form-control form-control-sm" name="cloudlog_id" id="cloudlog_id" value="">
 					</div>
 				</div>
@@ -77,22 +77,16 @@
 					</div>
 				</div>
 				</div>
-		</div>
-		<div class="container">
-
-			<div class="container-fluid bg-info">
-				<div class="modal-dialog">
-					<div class="modal-content">
-						<div class="modal-header">
-							<div class="label" style="text-align: center" id="msg"></div>
-						</div>
-						<div class="modal-body">
-							<div id="log">
+				<div class="card">
+					<div class="card-body">
+						<div class="card-title" id="current_trx"></div>
+							<div class="card-text">
+								<div class="label" style="text-align: center" id="msg"></div>
+								<div id="log"></div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 		</div>
 
 		<script src="./renderer.js"></script>

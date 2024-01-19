@@ -14,14 +14,14 @@ const {ipcRenderer} = require('electron')
 const bt_save=select("#save");
 const bt_quit=select("#quit");
 const bt_test=select("#test");
-var flpoller;
+var oldCat={ vfo: 0, mode: "SSB" };
 
 $(document).ready(function() {
 
 	cfg=ipcRenderer.sendSync("get_config", '');
 	$("#cloudlog_url").val(cfg.cloudlog_url);
 	$("#cloudlog_key").val(cfg.cloudlog_key.trim());
-	$("#cloudlog_id").val(cfg.cloudlog_id.trim());
+	$("#cloudlog_id").val(cfg.cloudlog_id);
 	$("#flrig_host").val(cfg.flrig_host.trim());
 	$("#flrig_port").val(cfg.flrig_port.trim());
 	$("#flrig_ena").prop("checked", cfg.flrig_ena);
@@ -86,10 +86,15 @@ window.TX_API.onUpdateTX((value) => {
 
 
 async function get_trx() {
-	let x={};
-	x.vfo=await getInfo('rig.get_vfo');
-	x.mode=await getInfo('rig.get_mode');
-	return x;
+	let currentCat={};
+	currentCat.vfo=await getInfo('rig.get_vfo');
+	currentCat.mode=await getInfo('rig.get_mode');
+	$("#current_trx").html((currentCat.vfo/(1000*1000))+" MHz / "+currentCat.mode);
+	if (!(isDeepEqual(oldCat,currentCat))) {
+		console.log(currentCat);
+	} 
+	oldCat=currentCat;
+	return currentCat;
 }
 
 async function getInfo(which) {
@@ -114,9 +119,34 @@ async function getInfo(which) {
 async function getsettrx() {
 	if ($("#flrig_ena").is(':checked')) {
 		x=await get_trx();
-		console.log(x);
 		setTimeout(() => {
 			getsettrx();
 		}, 1000);
 	}
 }
+
+const isDeepEqual = (object1, object2) => {
+
+	const objKeys1 = Object.keys(object1);
+	const objKeys2 = Object.keys(object2);
+
+	if (objKeys1.length !== objKeys2.length) return false;
+
+	for (var key of objKeys1) {
+		const value1 = object1[key];
+		const value2 = object2[key];
+
+		const isObjects = isObject(value1) && isObject(value2);
+
+		if ((isObjects && !isDeepEqual(value1, value2)) ||
+		    (!isObjects && value1 !== value2)
+		   ) {
+			   return false;
+		   }
+	}
+	return true;
+};
+
+const isObject = (object) => {
+	return object != null && typeof object === "object";
+};
