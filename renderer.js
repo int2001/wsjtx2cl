@@ -48,13 +48,15 @@ $(document).ready(function() {
 		x=(ipcRenderer.sendSync("test", cfg));
 		if (x.payload.status == 'created') {
 			$("#test").removeClass('btn-primary');
-			$("#test").removeClass('alert-danger');
-			$("#test").addClass('alert-success');
+			$("#test").removeClass('btn-danger');
+			$("#test").addClass('btn-success');
+			$("#msg2").hide();
 			$("#msg2").html("");
 		} else {
 			$("#test").removeClass('btn-primary');
-			$("#test").removeClass('alert-success');
-			$("#test").addClass('alert-danger');
+			$("#test").removeClass('btn-success');
+			$("#test").addClass('btn-danger');
+			$("#msg2").show();
 			$("#msg2").html("Test failed. Reason: "+x.payload.reason);
 		}
 		console.log(x);
@@ -65,6 +67,9 @@ $(document).ready(function() {
 	$("#flrig_ena").on( "click",function() {
 		getsettrx();
 	});
+
+	setInterval(updateUtcTime, 1000);
+	window.onload = updateUtcTime;
 });
 
 function select(selector) {
@@ -163,4 +168,16 @@ async function informWavelog(CAT) {
 		body: JSON.stringify(data)
 	});
 	return x;
+}
+
+function updateUtcTime() {
+	const now = new Date();
+
+	const hours = ('0' + now.getUTCHours()).slice(-2);
+	const minutes = ('0' + now.getUTCMinutes()).slice(-2);
+	const seconds = ('0' + now.getUTCSeconds()).slice(-2);
+
+	const formattedTime = `${hours}:${minutes}:${seconds}z`;
+
+	document.getElementById('utc').innerHTML = formattedTime;
 }
