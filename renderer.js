@@ -91,7 +91,8 @@ async function get_trx() {
 	currentCat.mode=await getInfo('rig.get_mode');
 	$("#current_trx").html((currentCat.vfo/(1000*1000))+" MHz / "+currentCat.mode);
 	if (!(isDeepEqual(oldCat,currentCat))) {
-		console.log(currentCat);
+		// console.log(currentCat);
+		console.log(await informWavelog(currentCat));
 	} 
 	oldCat=currentCat;
 	return currentCat;
@@ -150,3 +151,16 @@ const isDeepEqual = (object1, object2) => {
 const isObject = (object) => {
 	return object != null && typeof object === "object";
 };
+
+async function informWavelog(CAT) {
+	let data={ radio: "WSJTX 2 WL", key: cfg.cloudlog_key, frequency: (CAT.vfo), mode: CAT.mode };
+	let x=await fetch(cfg.cloudlog_url + '/api/radio', {
+		method: 'POST',
+		headers: {
+			Accept: 'application.json',
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(data)
+	});
+	return x;
+}
