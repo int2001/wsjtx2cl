@@ -37,9 +37,11 @@ storage.has('basic', function(error, hasKey) {
 
 function createWindow () {
 	const mainWindow = new BrowserWindow({
-		width: 800,
+		width: 420,
+		minWidth: 420,
 		height: 550,
-		resizable: false,
+		minHeight: 550,
+		resizable: true,
 		autoHideMenuBar: true,
 		webPreferences: {
 			contextIsolation: false,
