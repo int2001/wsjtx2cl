@@ -31,7 +31,7 @@ $(document).ready(function() {
 		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
 		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
 		cfg.flrig_host=$("#flrig_host").val().trim();
-		cfg.flirg_port=$("#flrig_port").val().trim();
+		cfg.flrig_port=$("#flrig_port").val().trim();
 		cfg.flrig_ena=$("#flrig_ena").is(':checked');
 		x=ipcRenderer.sendSync("set_config", cfg);
 		console.log(x);

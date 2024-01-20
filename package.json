@@ -4,7 +4,7 @@
   "description": "Simple Bridge for connecting WSJT-* to Wavelog",
   "keywords": [],
   "main": "./main.js",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "author": "DJ7NT",
   "scripts": {
     "start": "electron-forge start",

@@ -1,6 +1,7 @@
 const {app, BrowserWindow, globalShortcut } = require('electron/main');
 const path = require('node:path');
 const {ipcMain} = require('electron')
+
 let mainWindow;
 let msgbacklog=[];
 var WServer;
@@ -77,6 +78,11 @@ ipcMain.on("get_config", async (event,arg) => {
 	event.returnValue=defaultcfg;
 });
 
+ipcMain.on("setCAT", async (event,arg) => {
+	settrx(arg);
+	event.returnValue=true;
+});
+
 ipcMain.on("quit", async (event,arg) => {
 	app.quit();
 	event.returnValue=true;
@@ -100,7 +106,6 @@ ipcMain.on("test", async (event,arg) => {
 		}
 	}
 });
-
 
 app.whenReady().then(() => {
 	mainWindow=createWindow();
@@ -139,7 +144,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
-			'User-Agent': 'SW2CL_v' + app.getVersion(),
+			'User-Agent': 'SW2WL_v' + app.getVersion(),
 			'Content-Length': postData.length
 		}
 	};
@@ -248,5 +253,59 @@ function startserver() {
 		tomsg('Some other Tool blocks Port 2333. Stop it, and restart this');
 	}
 }
+
+async function settrx(qrg) {
+	let to={};
+	const http = require('http');
+	to.qrg=qrg;
+	if ((to.qrg) < 7999000) {
+		to,mode='LSB';
+	} else {
+		to.mode='USB';
+	}
+	postData= '<?xml version="1.0"?><methodCall><methodName>main.set_frequency</methodName><params><param><value><double>' + to.qrg + '</double></value></param></params></methodCall>'
+	var options = {
+		method: 'POST',
+		headers: {
+			'User-Agent': 'SW2WL_v' + app.getVersion(),
+			'Content-Length': postData.length
+		}
+	};
+
+	return new Promise((resolve, reject) => {
+		rej=false;
+		let result={};
+		let url="http://"+defaultcfg.flrig_host+':'+defaultcfg.flrig_port+'/';
+		const req = http.request(url,options, (res) => {
+			let body=[];
+			res.on('data', (chunk) => body.push(chunk));
+			res.on('end', () => {
+				var resString = Buffer.concat(body).toString();
+				if (rej) {
+					reject(resString);
+				} else {
+					resolve(resString);
+				}
+			})
+		})
+
+		req.on('error', (err) => {
+			req.destroy();
+			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			reject(result.resString);
+		})
+
+		req.on('timeout', (err) => {
+			req.destroy();
+			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			reject(result.resString);
+		})
+
+		req.write(postData);
+		req.end();
+	});
+	return qrgplain;
+}
+
 
 startserver();
