@@ -42,7 +42,7 @@ function createWindow () {
 		height: 550,
 		minHeight: 550,
 		resizable: true,
-		autoHideMenuBar: true,
+		autoHideMenuBar: app.isPackaged,
 		webPreferences: {
 			contextIsolation: false,
 			nodeIntegration: true,
@@ -51,7 +51,9 @@ function createWindow () {
 			preload: path.join(__dirname, 'preload.js')
 		}
 	});
-	mainWindow.setMenu(null)
+	if (app.isPackaged) {
+	 	mainWindow.setMenu(null);
+	}
 
 
 	mainWindow.loadFile('index.html')
