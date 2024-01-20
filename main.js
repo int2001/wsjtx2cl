@@ -41,7 +41,7 @@ function createWindow () {
 		minWidth: 420,
 		height: 550,
 		minHeight: 550,
-		resizable: !app.isPackaged,
+		resizable: true,
 		autoHideMenuBar: app.isPackaged,
 		webPreferences: {
 			contextIsolation: false,
