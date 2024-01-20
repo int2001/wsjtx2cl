@@ -251,6 +251,7 @@ function startserver() {
 		WServer.bind(2333);
 		tomsg('Waiting for QSO / Listening on UDP 2333');
 		http.createServer(function (req, res) {
+			res.setHeader('Access-Control-Allow-Origin', '*');
 			res.writeHead(200, {'Content-Type': 'text/plain'});
 			res.end('');
 			let qrg=req.url.substr(1);
@@ -267,11 +268,10 @@ async function settrx(qrg) {
 	let to={};
 	to.qrg=qrg;
 	if ((to.qrg) < 7999000) {
-		to,mode='LSB';
+		to.mode='LSB';
 	} else {
 		to.mode='USB';
 	}
-	console.log(to);
 	postData= '<?xml version="1.0"?>';
 	postData+='<methodCall><methodName>main.set_frequency</methodName><params><param><value><double>' + to.qrg + '</double></value></param></params></methodCall>';
 	var options = {
