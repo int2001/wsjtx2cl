@@ -1,6 +1,7 @@
 const {app, BrowserWindow, globalShortcut } = require('electron/main');
 const path = require('node:path');
 const {ipcMain} = require('electron')
+const http = require('http');
 
 let mainWindow;
 let msgbacklog=[];
@@ -249,21 +250,30 @@ function startserver() {
 	try {
 		WServer.bind(2333);
 		tomsg('Waiting for QSO / Listening on UDP 2333');
+		http.createServer(function (req, res) {
+			res.writeHead(200, {'Content-Type': 'text/plain'});
+			res.end('');
+			let qrg=req.url.substr(1);
+			if (Number.isInteger(Number.parseInt(qrg))) {
+				settrx(qrg);
+			}
+		}).listen(54321);
 	} catch(e) {
-		tomsg('Some other Tool blocks Port 2333. Stop it, and restart this');
+		tomsg('Some other Tool blocks Port 2333 or 54321. Stop it, and restart this');
 	}
 }
 
 async function settrx(qrg) {
 	let to={};
-	const http = require('http');
 	to.qrg=qrg;
 	if ((to.qrg) < 7999000) {
 		to,mode='LSB';
 	} else {
 		to.mode='USB';
 	}
-	postData= '<?xml version="1.0"?><methodCall><methodName>main.set_frequency</methodName><params><param><value><double>' + to.qrg + '</double></value></param></params></methodCall>'
+	console.log(to);
+	postData= '<?xml version="1.0"?>';
+	postData+='<methodCall><methodName>main.set_frequency</methodName><params><param><value><double>' + to.qrg + '</double></value></param></params></methodCall>';
 	var options = {
 		method: 'POST',
 		headers: {
@@ -271,11 +281,27 @@ async function settrx(qrg) {
 			'Content-Length': postData.length
 		}
 	};
+	let url="http://"+defaultcfg.flrig_host+':'+defaultcfg.flrig_port+'/';
+	x=await httpPost(url,options,postData);
 
+	postData= '<?xml version="1.0"?>';
+	postData+='<methodCall><methodName>rig.set_modeA</methodName><params><param><value>' + to.mode + '</value></param></params></methodCall>';
+	var options = {
+		method: 'POST',
+		headers: {
+			'User-Agent': 'SW2WL_v' + app.getVersion(),
+			'Content-Length': postData.length
+		}
+	};
+	x=await httpPost(url,options,postData);
+
+	return true;
+}
+
+function httpPost(url,options,postData) {
 	return new Promise((resolve, reject) => {
 		rej=false;
 		let result={};
-		let url="http://"+defaultcfg.flrig_host+':'+defaultcfg.flrig_port+'/';
 		const req = http.request(url,options, (res) => {
 			let body=[];
 			res.on('data', (chunk) => body.push(chunk));
@@ -291,21 +317,19 @@ async function settrx(qrg) {
 
 		req.on('error', (err) => {
 			req.destroy();
-			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			result.resString='Other Problem';
 			reject(result.resString);
 		})
 
 		req.on('timeout', (err) => {
 			req.destroy();
-			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			result.resString='Timeout';
 			reject(result.resString);
 		})
 
 		req.write(postData);
 		req.end();
 	});
-	return qrgplain;
 }
-
 
 startserver();
