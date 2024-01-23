@@ -143,6 +143,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 	const https = require('https');
 	var options = {
 		method: 'POST',
+		timeout: 5000,
 		headers: {
 			'Content-Type': 'application/json',
 			'User-Agent': 'SW2WL_v' + app.getVersion(),
