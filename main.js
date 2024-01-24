@@ -169,7 +169,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 				var resString = Buffer.concat(body).toString();
 				if (rej) {
 					if (resString.indexOf('html>')>0) {
-						resString='{"status":"failed","reason":"Falsche URL"}';
+						resString='{"status":"failed","reason":"wrong URL"}';
 					}
 					result.resString=resString;
 					reject(result);
@@ -183,7 +183,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 		req.on('error', (err) => {
 			rej=true;
 			req.destroy();
-			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			result.resString='{"status":"failed","reason":"internet problem"}';
 			reject(result);
 		})
 
