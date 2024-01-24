@@ -1,10 +1,10 @@
 {
-  "name": "Simple WSJTX 2 CL by DJ7NT",
-  "productName": "Simple WSJTX 2 CL by DJ7NT",
-  "description": "Simple Bridge for connecting WSJT-* fro Cloudlog",
+  "name": "WaveLog-Gate by DJ7NT",
+  "productName": "WLGate by DJ7NT",
+  "description": "Gateway for connecting WSJT-* and FLRig to Wavelog",
   "keywords": [],
   "main": "./main.js",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "author": "DJ7NT",
   "scripts": {
     "start": "electron-forge start",

@@ -1,6 +1,8 @@
 const {app, BrowserWindow, globalShortcut } = require('electron/main');
 const path = require('node:path');
 const {ipcMain} = require('electron')
+const http = require('http');
+
 let mainWindow;
 let msgbacklog=[];
 var WServer;
@@ -15,7 +17,10 @@ var q={};
 var defaultcfg = {
 	cloudlog_url: "https://log.jo30.de/index.php",
 	cloudlog_key: "mykey",
-	cloudlog_id: 0
+	cloudlog_id: 0,
+	flrig_host: '127.0.0.1',
+	flrig_port: '12345',
+	flrig_ena: false,
 }
 
 const storage = require('electron-json-storage');
@@ -28,16 +33,18 @@ storage.has('basic', function(error, hasKey) {
 			if (e) throw e;
 		});
 	} else {
-		defaultcfg=storage.getSync('basic');
+		Object.assign(defaultcfg,storage.getSync('basic'));
 	}
 });
 
 function createWindow () {
 	const mainWindow = new BrowserWindow({
-		width: 800,
+		width: 420,
+		minWidth: 420,
 		height: 550,
-		resizable: false,
-		autoHideMenuBar: true,
+		minHeight: 550,
+		resizable: true,
+		autoHideMenuBar: app.isPackaged,
 		webPreferences: {
 			contextIsolation: false,
 			nodeIntegration: true,
@@ -46,7 +53,9 @@ function createWindow () {
 			preload: path.join(__dirname, 'preload.js')
 		}
 	});
-	mainWindow.setMenu(null)
+	if (app.isPackaged) {
+	 	mainWindow.setMenu(null);
+	}
 
 
 	mainWindow.loadFile('index.html')
@@ -65,8 +74,14 @@ ipcMain.on("set_config", async (event,arg) => {
 });
 
 ipcMain.on("get_config", async (event,arg) => {
-	defaultcfg=storage.getSync('basic')
+	Object.assign(defaultcfg,storage.getSync('basic'));
+	// defaultcfg=storage.getSync('basic')
 	event.returnValue=defaultcfg;
+});
+
+ipcMain.on("setCAT", async (event,arg) => {
+	settrx(arg);
+	event.returnValue=true;
 });
 
 ipcMain.on("quit", async (event,arg) => {
@@ -92,7 +107,6 @@ ipcMain.on("test", async (event,arg) => {
 		}
 	}
 });
-
 
 app.whenReady().then(() => {
 	mainWindow=createWindow();
@@ -129,9 +143,10 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 	const https = require('https');
 	var options = {
 		method: 'POST',
+		timeout: 5000,
 		headers: {
 			'Content-Type': 'application/json',
-			'User-Agent': 'SW2CL_v' + app.getVersion(),
+			'User-Agent': 'SW2WL_v' + app.getVersion(),
 			'Content-Length': postData.length
 		}
 	};
@@ -154,7 +169,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 				var resString = Buffer.concat(body).toString();
 				if (rej) {
 					if (resString.indexOf('html>')>0) {
-						resString='{"status":"failed","reason":"Falsche URL"}';
+						resString='{"status":"failed","reason":"wrong URL"}';
 					}
 					result.resString=resString;
 					reject(result);
@@ -168,7 +183,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 		req.on('error', (err) => {
 			rej=true;
 			req.destroy();
-			result.resString='{"status":"failed","reason":"Internetproblem"}';
+			result.resString='{"status":"failed","reason":"internet problem"}';
 			reject(result);
 		})
 
@@ -236,9 +251,86 @@ function startserver() {
 	try {
 		WServer.bind(2333);
 		tomsg('Waiting for QSO / Listening on UDP 2333');
+		http.createServer(function (req, res) {
+			res.setHeader('Access-Control-Allow-Origin', '*');
+			res.writeHead(200, {'Content-Type': 'text/plain'});
+			res.end('');
+			let qrg=req.url.substr(1);
+			if (Number.isInteger(Number.parseInt(qrg))) {
+				settrx(qrg);
+			}
+		}).listen(54321);
 	} catch(e) {
-		tomsg('Some other Tool blocks Port 2333. Stop it, and restart this');
+		tomsg('Some other Tool blocks Port 2333 or 54321. Stop it, and restart this');
 	}
+}
+
+async function settrx(qrg) {
+	let to={};
+	to.qrg=qrg;
+	if ((to.qrg) < 7999000) {
+		to.mode='LSB';
+	} else {
+		to.mode='USB';
+	}
+	postData= '<?xml version="1.0"?>';
+	postData+='<methodCall><methodName>main.set_frequency</methodName><params><param><value><double>' + to.qrg + '</double></value></param></params></methodCall>';
+	var options = {
+		method: 'POST',
+		headers: {
+			'User-Agent': 'SW2WL_v' + app.getVersion(),
+			'Content-Length': postData.length
+		}
+	};
+	let url="http://"+defaultcfg.flrig_host+':'+defaultcfg.flrig_port+'/';
+	x=await httpPost(url,options,postData);
+
+	postData= '<?xml version="1.0"?>';
+	postData+='<methodCall><methodName>rig.set_modeA</methodName><params><param><value>' + to.mode + '</value></param></params></methodCall>';
+	var options = {
+		method: 'POST',
+		headers: {
+			'User-Agent': 'SW2WL_v' + app.getVersion(),
+			'Content-Length': postData.length
+		}
+	};
+	x=await httpPost(url,options,postData);
+
+	return true;
+}
+
+function httpPost(url,options,postData) {
+	return new Promise((resolve, reject) => {
+		rej=false;
+		let result={};
+		const req = http.request(url,options, (res) => {
+			let body=[];
+			res.on('data', (chunk) => body.push(chunk));
+			res.on('end', () => {
+				var resString = Buffer.concat(body).toString();
+				if (rej) {
+					reject(resString);
+				} else {
+					resolve(resString);
+				}
+			})
+		})
+
+		req.on('error', (err) => {
+			req.destroy();
+			result.resString='Other Problem';
+			reject(result.resString);
+		})
+
+		req.on('timeout', (err) => {
+			req.destroy();
+			result.resString='Timeout';
+			reject(result.resString);
+		})
+
+		req.write(postData);
+		req.end();
+	});
 }
 
 startserver();
