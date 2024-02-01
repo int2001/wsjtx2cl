@@ -158,7 +158,7 @@ const isObject = (object) => {
 };
 
 async function informWavelog(CAT) {
-	let data={ radio: "WSJTX 2 WL", key: cfg.cloudlog_key, frequency: (CAT.vfo), mode: CAT.mode };
+	let data={ radio: "WLGate", key: cfg.cloudlog_key, frequency: (CAT.vfo), mode: CAT.mode };
 	let x=await fetch(cfg.cloudlog_url + '/api/radio', {
 		method: 'POST',
 		headers: {
