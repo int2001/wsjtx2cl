@@ -19,17 +19,17 @@ var oldCat={ vfo: 0, mode: "SSB" };
 $(document).ready(function() {
 
 	cfg=ipcRenderer.sendSync("get_config", '');
-	$("#cloudlog_url").val(cfg.cloudlog_url);
-	$("#cloudlog_key").val(cfg.cloudlog_key.trim());
-	$("#cloudlog_id").val(cfg.cloudlog_id);
+	$("#wavelog_url").val(cfg.wavelog_url);
+	$("#wavelog_key").val(cfg.wavelog_key.trim());
+	$("#wavelog_id").val(cfg.wavelog_id);
 	$("#flrig_host").val(cfg.flrig_host.trim());
 	$("#flrig_port").val(cfg.flrig_port.trim());
 	$("#flrig_ena").prop("checked", cfg.flrig_ena);
 
 	bt_save.addEventListener('click', () => {
-		cfg.cloudlog_url=$("#cloudlog_url").val().trim();
-		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
-		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
+		cfg.wavelog_url=$("#wavelog_url").val().trim();
+		cfg.wavelog_key=$("#wavelog_key").val().trim();
+		cfg.wavelog_id=$("#wavelog_id").val().trim();
 		cfg.flrig_host=$("#flrig_host").val().trim();
 		cfg.flrig_port=$("#flrig_port").val().trim();
 		cfg.flrig_ena=$("#flrig_ena").is(':checked');
@@ -42,9 +42,9 @@ $(document).ready(function() {
 	});
 
 	bt_test.addEventListener('click', () => {
-		cfg.cloudlog_url=$("#cloudlog_url").val().trim();
-		cfg.cloudlog_key=$("#cloudlog_key").val().trim();
-		cfg.cloudlog_id=$("#cloudlog_id").val().trim();
+		cfg.wavelog_url=$("#wavelog_url").val().trim();
+		cfg.wavelog_key=$("#wavelog_key").val().trim();
+		cfg.wavelog_id=$("#wavelog_id").val().trim();
 		x=(ipcRenderer.sendSync("test", cfg));
 		if (x.payload.status == 'created') {
 			$("#test").removeClass('btn-primary');
@@ -158,8 +158,8 @@ const isObject = (object) => {
 };
 
 async function informWavelog(CAT) {
-	let data={ radio: "WLGate", key: cfg.cloudlog_key, frequency: (CAT.vfo), mode: CAT.mode };
-	let x=await fetch(cfg.cloudlog_url + '/api/radio', {
+	let data={ radio: "WLGate", key: cfg.wavelog_key, frequency: (CAT.vfo), mode: CAT.mode };
+	let x=await fetch(cfg.wavelog_url + '/api/radio', {
 		method: 'POST',
 		headers: {
 			Accept: 'application.json',
