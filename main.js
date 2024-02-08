@@ -15,9 +15,9 @@ var udp = require('dgram');
 
 var q={};
 var defaultcfg = {
-	cloudlog_url: "https://log.jo30.de/index.php",
-	cloudlog_key: "mykey",
-	cloudlog_id: 0,
+	wavelog_url: "https://log.jo30.de/index.php",
+	wavelog_key: "mykey",
+	wavelog_id: 0,
 	flrig_host: '127.0.0.1',
 	flrig_port: '12345',
 	flrig_ena: false,
@@ -40,10 +40,8 @@ storage.has('basic', function(error, hasKey) {
 function createWindow () {
 	const mainWindow = new BrowserWindow({
 		width: 420,
-		minWidth: 420,
 		height: 550,
-		minHeight: 550,
-		resizable: true,
+		resizable: false,
 		autoHideMenuBar: app.isPackaged,
 		webPreferences: {
 			contextIsolation: false,
@@ -93,7 +91,7 @@ ipcMain.on("test", async (event,arg) => {
 	let result={};
 	let plain;
 	try {
-		plain=await send2cloudlog(arg,DemoAdif, true);
+		plain=await send2wavelog(arg,DemoAdif, true);
 	} catch (e) {
 		plain=e;
 	} finally {
@@ -132,10 +130,10 @@ function parseADIF(adifdata) {
 	return adiReader.toObject();
 }
 
-function send2cloudlog(o_cfg,adif, dryrun = false) {
+function send2wavelog(o_cfg,adif, dryrun = false) {
 	let clpayload={};
-	clpayload.key=o_cfg.cloudlog_key.trim();
-	clpayload.station_profile_id=o_cfg.cloudlog_id.trim();
+	clpayload.key=o_cfg.wavelog_key.trim();
+	clpayload.station_profile_id=o_cfg.wavelog_id.trim();
 	clpayload.type='adif';
 	clpayload.string=adif;
 	// console.log(clpayload);
@@ -154,7 +152,7 @@ function send2cloudlog(o_cfg,adif, dryrun = false) {
 	return new Promise((resolve, reject) => {
 		rej=false;
 		let result={};
-		let url=o_cfg.cloudlog_url + '/api/qso';
+		let url=o_cfg.wavelog_url + '/api/qso';
 		if (dryrun) { url+='/true'; }
 		const req = https.request(url,options, (res) => {
 
@@ -211,7 +209,7 @@ WServer.on('message',async function(msg,info){
 	if (adobject.qsos.length>0) {
 		let x={};
 		try {
-			plainret=await send2cloudlog(defaultcfg,msg.toString());
+			plainret=await send2wavelog(defaultcfg,msg.toString());
 			x.state=plainret.statusCode;
 			x.payload = JSON.parse(plainret.resString); 
 		} catch(e) {
