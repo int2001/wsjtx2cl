@@ -3,7 +3,7 @@ const path = require('node:path');
 const {ipcMain} = require('electron')
 const http = require('http');
 
-let mainWindow;
+let s_mainWindow;
 let msgbacklog=[];
 var WServer;
 
@@ -18,6 +18,7 @@ var defaultcfg = {
 	wavelog_url: "https://log.jo30.de/index.php",
 	wavelog_key: "mykey",
 	wavelog_id: 0,
+	wavelog_radioname: 'WLGate',
 	flrig_host: '127.0.0.1',
 	flrig_port: '12345',
 	flrig_ena: false,
@@ -40,7 +41,7 @@ storage.has('basic', function(error, hasKey) {
 function createWindow () {
 	const mainWindow = new BrowserWindow({
 		width: 420,
-		height: 550,
+		height: 250,
 		resizable: false,
 		autoHideMenuBar: app.isPackaged,
 		webPreferences: {
@@ -69,6 +70,13 @@ ipcMain.on("set_config", async (event,arg) => {
 		if (e) throw e;
 	});
 	event.returnValue=defaultcfg;
+});
+
+ipcMain.on("resize", async (event,arg) => {
+	// event.returnValue="aha";
+	newsize=arg;
+	s_mainWindow.setSize(newsize.width,newsize.height,newsize.ani);
+	event.returnValue=true;
 });
 
 ipcMain.on("get_config", async (event,arg) => {
@@ -107,14 +115,14 @@ ipcMain.on("test", async (event,arg) => {
 });
 
 app.whenReady().then(() => {
-	mainWindow=createWindow();
+	s_mainWindow=createWindow();
 	globalShortcut.register('Control+Shift+I', () => { return false; });
 	app.on('activate', function () {
 		if (BrowserWindow.getAllWindows().length === 0) createWindow()
 	});
-	mainWindow.webContents.once('dom-ready', function() {
+	s_mainWindow.webContents.once('dom-ready', function() {
 		if (msgbacklog.length>0) {
-			mainWindow.webContents.send('updateMsg',msgbacklog.pop());
+			s_mainWindow.webContents.send('updateMsg',msgbacklog.pop());
 		}
 	});
 })
@@ -230,7 +238,7 @@ WServer.on('message',async function(msg,info){
 			adobject.created=false;
 			adobject.fail=x;
 		}
-		mainWindow.webContents.send('updateTX', adobject);
+		s_mainWindow.webContents.send('updateTX', adobject);
 		tomsg('');
 	} else {
 		tomsg('<div class="alert alert-danger" role="alert">Set ONLY Secondary UDP-Server to Port 2333 at WSTJ-X</div>');
@@ -239,7 +247,7 @@ WServer.on('message',async function(msg,info){
 
 function tomsg(msg) {
 	try {
-		mainWindow.webContents.send('updateMsg',msg);
+		s_mainWindow.webContents.send('updateMsg',msg);
 	} catch(e) {
 		msgbacklog.push(msg);
 	}

@@ -22,6 +22,7 @@ $(document).ready(function() {
 	$("#wavelog_url").val(cfg.wavelog_url);
 	$("#wavelog_key").val(cfg.wavelog_key.trim());
 	$("#wavelog_id").val(cfg.wavelog_id);
+	$("#wavelog_radioname").val(cfg.wavelog_radioname);
 	$("#flrig_host").val(cfg.flrig_host.trim());
 	$("#flrig_port").val(cfg.flrig_port.trim());
 	$("#flrig_ena").prop("checked", cfg.flrig_ena);
@@ -30,6 +31,7 @@ $(document).ready(function() {
 		cfg.wavelog_url=$("#wavelog_url").val().trim();
 		cfg.wavelog_key=$("#wavelog_key").val().trim();
 		cfg.wavelog_id=$("#wavelog_id").val().trim();
+		cfg.wavelog_radionname=$("#wavelog_radionname").val().trim();
 		cfg.flrig_host=$("#flrig_host").val().trim();
 		cfg.flrig_port=$("#flrig_port").val().trim();
 		cfg.flrig_ena=$("#flrig_ena").is(':checked');
@@ -45,6 +47,7 @@ $(document).ready(function() {
 		cfg.wavelog_url=$("#wavelog_url").val().trim();
 		cfg.wavelog_key=$("#wavelog_key").val().trim();
 		cfg.wavelog_id=$("#wavelog_id").val().trim();
+		cfg.wavelog_radioname=$("#wavelog_radioname").val().trim();
 		x=(ipcRenderer.sendSync("test", cfg));
 		if (x.payload.status == 'created') {
 			$("#test").removeClass('btn-primary');
@@ -70,7 +73,28 @@ $(document).ready(function() {
 
 	setInterval(updateUtcTime, 1000);
 	window.onload = updateUtcTime;
+
+	$("#config-tab").on("click",function() {
+		obj={};
+		obj.width=420;
+		obj.height=550;
+		obj.ani=false;
+		resizeme(obj);
+	});
+
+	$("#status-tab").on("click",function() {
+		obj={};
+		obj.width=420;
+		obj.height=250;
+		obj.ani=false;
+		resizeme(obj);
+	});
 });
+
+function resizeme(size) {
+	x=(ipcRenderer.sendSync("resize", size))
+	return x;
+}
 
 function select(selector) {
 	return document.querySelector(selector);
@@ -158,7 +182,7 @@ const isObject = (object) => {
 };
 
 async function informWavelog(CAT) {
-	let data={ radio: "WLGate", key: cfg.wavelog_key, frequency: (CAT.vfo), mode: CAT.mode };
+	let data={ radio: "WLGate", key: cfg.wavelog_key, radio: cfg.wavelog_radioname, frequency: (CAT.vfo), mode: CAT.mode };
 	let x=await fetch(cfg.wavelog_url + '/api/radio', {
 		method: 'POST',
 		headers: {
