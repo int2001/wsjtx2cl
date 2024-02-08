@@ -75,6 +75,7 @@ ipcMain.on("set_config", async (event,arg) => {
 ipcMain.on("resize", async (event,arg) => {
 	// event.returnValue="aha";
 	newsize=arg;
+	s_mainWindow.setContentSize(newsize.width,newsize.height,newsize.ani);
 	s_mainWindow.setSize(newsize.width,newsize.height,newsize.ani);
 	event.returnValue=true;
 });
