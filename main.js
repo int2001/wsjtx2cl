@@ -40,10 +40,8 @@ storage.has('basic', function(error, hasKey) {
 function createWindow () {
 	const mainWindow = new BrowserWindow({
 		width: 420,
-		minWidth: 420,
 		height: 550,
-		minHeight: 550,
-		resizable: true,
+		resizable: false,
 		autoHideMenuBar: app.isPackaged,
 		webPreferences: {
 			contextIsolation: false,
