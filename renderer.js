@@ -20,11 +20,11 @@ $(document).ready(function() {
 
 	cfg=ipcRenderer.sendSync("get_config", '');
 	$("#wavelog_url").val(cfg.wavelog_url);
-	$("#wavelog_key").val(cfg.wavelog_key.trim());
+	$("#wavelog_key").val(cfg.wavelog_key);
 	$("#wavelog_id").val(cfg.wavelog_id);
 	$("#wavelog_radioname").val(cfg.wavelog_radioname);
-	$("#flrig_host").val(cfg.flrig_host.trim());
-	$("#flrig_port").val(cfg.flrig_port.trim());
+	$("#flrig_host").val(cfg.flrig_host);
+	$("#flrig_port").val(cfg.flrig_port);
 	$("#flrig_ena").prop("checked", cfg.flrig_ena);
 
 	bt_save.addEventListener('click', () => {
