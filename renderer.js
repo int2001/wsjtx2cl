@@ -31,7 +31,7 @@ $(document).ready(function() {
 		cfg.wavelog_url=$("#wavelog_url").val().trim();
 		cfg.wavelog_key=$("#wavelog_key").val().trim();
 		cfg.wavelog_id=$("#wavelog_id").val().trim();
-		cfg.wavelog_radionname=$("#wavelog_radionname").val().trim();
+		cfg.wavelog_radioname=$("#wavelog_radioname").val().trim();
 		cfg.flrig_host=$("#flrig_host").val().trim();
 		cfg.flrig_port=$("#flrig_port").val().trim();
 		cfg.flrig_ena=$("#flrig_ena").is(':checked');

@@ -65,7 +65,7 @@ function createWindow () {
 
 ipcMain.on("set_config", async (event,arg) => {
 	// event.returnValue="aha";
-	defaultcfg=arg;
+ 	defaultcfg=arg;
 	storage.set('basic', defaultcfg, function(e) {
 		if (e) throw e;
 	});
@@ -82,7 +82,7 @@ ipcMain.on("resize", async (event,arg) => {
 
 ipcMain.on("get_config", async (event,arg) => {
 	Object.assign(defaultcfg,storage.getSync('basic'));
-	// defaultcfg=storage.getSync('basic')
+	defaultcfg=storage.getSync('basic')
 	event.returnValue=defaultcfg;
 });
 
