@@ -213,7 +213,13 @@ WServer.on('error', function(err) {
 });
 
 WServer.on('message',async function(msg,info){
-	adobject=parseADIF(msg.toString());
+	try {
+		adobject=parseADIF(msg.toString());
+	} catch(e) {
+		adobject={};
+		adobject.qsos=[{'TIME_ON': "ADIF from WSJTX NOT Correct. But QSO was saved"}];
+	}
+
 	var plainret='';
 	if (adobject.qsos.length>0) {
 		let x={};
