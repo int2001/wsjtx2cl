@@ -2,6 +2,7 @@ const {app, BrowserWindow, globalShortcut } = require('electron/main');
 const path = require('node:path');
 const {ipcMain} = require('electron')
 const http = require('http');
+const xml = require("xml2js");
 
 let s_mainWindow;
 let msgbacklog=[];
@@ -139,6 +140,13 @@ function parseADIF(adifdata) {
 	return adiReader.toObject();
 }
 
+function writeADIF(adifObject) {
+	const { ADIF } = require("tcadif");
+	var adiWriter = new ADIF(adifObject);
+	// console.log(adiWriter);
+	return adiWriter;
+}
+
 function send2wavelog(o_cfg,adif, dryrun = false) {
 	let clpayload={};
 	clpayload.key=o_cfg.wavelog_key.trim();
@@ -213,18 +221,43 @@ WServer.on('error', function(err) {
 });
 
 WServer.on('message',async function(msg,info){
-	try {
+	parsedXML={};
+	adobject={};
+	if (msg.toString().includes("xml")) {	// detect if incoming String is XML
+		try {
+			xml.parseString(msg.toString(), function (err,dat) {
+				parsedXML=dat;
+			});
+			let qsodatum = new Date(Date.parse(parsedXML.contactinfo.timestamp[0]));
+			qsodat=fmt(qsodatum);
+			if (parsedXML.contactinfo.mode[0] == 'USB' || parsedXML.contactinfo.mode[0] == 'LSB') {	 // TCADIF lib is not capable of using USB/LSB
+				parsedXML.contactinfo.mode[0]='SSB';
+			}
+			adobject = { qsos: [
+				{ 
+					CALL: parsedXML.contactinfo.call[0],
+					MODE: parsedXML.contactinfo.mode[0],
+					QSO_DATE_OFF: qsodat.d,
+					QSO_DATE: qsodat.d,
+					TIME_OFF: qsodat.t,
+					TIME_ON: qsodat.t,
+					RST_RCVD: parsedXML.contactinfo.rcv[0],
+					RST_SENT: parsedXML.contactinfo.snt[0],
+					FREQ: parsedXML.contactinfo.txfreq[0],
+					MYCALL: parsedXML.contactinfo.mycall[0],
+					GRIDSQUARE: parsedXML.contactinfo.gridsquare[0],
+					STATION_CALLSIGN: parsedXML.contactinfo.mycall[0]
+				} ]};
+		} catch (e) {}
+	} else {
 		adobject=parseADIF(msg.toString());
-	} catch(e) {
-		adobject={};
-		adobject.qsos=[{'TIME_ON': "ADIF from WSJTX NOT Correct. But QSO was saved"}];
 	}
-
 	var plainret='';
 	if (adobject.qsos.length>0) {
 		let x={};
 		try {
-			plainret=await send2wavelog(defaultcfg,msg.toString());
+			outadif=writeADIF(adobject);
+			plainret=await send2wavelog(defaultcfg,outadif.stringify());
 			x.state=plainret.statusCode;
 			x.payload = JSON.parse(plainret.resString); 
 		} catch(e) {
@@ -344,6 +377,19 @@ function httpPost(url,options,postData) {
 		req.write(postData);
 		req.end();
 	});
+}
+
+function fmt(spotDate) {
+	retstr={};
+	d=spotDate.getUTCDate().toString();
+	y=spotDate.getUTCFullYear().toString();
+	m=(1+spotDate.getUTCMonth()).toString();
+	h=spotDate.getUTCHours().toString();
+	i=spotDate.getUTCMinutes().toString();
+	s=spotDate.getUTCSeconds().toString();
+	retstr.d=y.padStart(4,'0')+m.padStart(2,'0')+d.padStart(2,'0');
+	retstr.t=h.padStart(2,'0')+i.padStart(2,'0')+s.padStart(2,'0');
+	return retstr;
 }
 
 startserver();
