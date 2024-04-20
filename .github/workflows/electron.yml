@@ -6,6 +6,8 @@ on:
     branches:
     # this will run on the electron branch
       - dev
+  workflow_dispatch:
+
 # this is where the magic happens, each job happens in parallel btw
 jobs:
   build_on_mac:
