@@ -21,7 +21,7 @@ module.exports = {
 	makers: [
 		{
 			name: '@electron-forge/maker-squirrel',
-			config: { icon: "./favicon.ico", maintainer: 'DJ7NT', loadingGif: "loading.gif", name: "SW2CL_DJ7NT" },
+			config: { icon: "./favicon.ico", maintainer: 'DJ7NT', loadingGif: "loading.gif", name: "WLGate_by_DJ7NT" },
 		},
 		{
 			name: '@electron-forge/maker-dmg',
