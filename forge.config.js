@@ -9,10 +9,10 @@ module.exports = {
 		{
 			name: '@electron-forge/publisher-github',
 			config: {
-				repository: {
-					owner: 'int2001',
-					name: 'wsjtx2cl'
-				},
+				// repository: {
+				// 	owner: 'int2001',
+				// 	name: 'wsjtx2cl'
+				// },
 				prerelease: true
 			}
 		}
