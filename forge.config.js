@@ -2,6 +2,18 @@ module.exports = {
   packagerConfig: {
     asar: true,
   },
+publishers: [
+    {
+      name: '@electron-forge/publisher-github',
+      config: {
+        repository: {
+          owner: 'int2001',
+          name: 'wsjtx2cl'
+        },
+        prerelease: true
+      }
+    }
+  ],
   rebuildConfig: {},
   makers: [
     {
